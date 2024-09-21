@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campo de Flores con Hojas Estáticas y Cuadros de Texto</title>
+    <style>
+        body {
+            margin: 0;  /* Eliminar márgenes */
+            padding: 0;  /* Eliminar padding */
+            overflow: hidden;  /* Evitar scroll en la pantalla */
+            font-family: 'Arial', sans-serif;
+        }
+        canvas {
+            display: block;  /* Asegurar que el canvas se muestre como bloque */
+        }
+        /* Estilos para los cuadros de texto */
+        .text-box, .instruction-box {
+            position: absolute;
+            width: 350px;
+            padding: 20px;
+            background-color: #fdf7c0;  /* Fondo suave */
+            color: #333;
+            border: 3px solid #FFD700;  /* Borde dorado */
+            border-radius: 15px;
+            box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);  /* Sombra ligera */
+            text-align: center;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+        }
+        .text-box {
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 18px;
+        }
+        .instruction-box {
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Cuadro de texto para el mensaje superior -->
+<div class="text-box">
+    🌻 ¡Feliz 21 de Septiembre! Celebremos la primavera con flores amarillas 🌻
+</div>
+
+<!-- Cuadro de texto para las instrucciones -->
+<div class="instruction-box">
+    🌼 Toca el centro de la flor para que cambie de color 🌼
+</div>
+
+<canvas id="flowerCanvas"></canvas> <!-- Canvas donde se dibujan las flores -->
+
+<script>
+    const canvas = document.getElementById('flowerCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Función para ajustar el tamaño del canvas al tamaño de la ventana
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+
+    resizeCanvas();  // Ajustamos el canvas al tamaño inicial
+    window.addEventListener('resize', resizeCanvas);  // Actualizamos tamaño si la ventana se redimensiona
+
+    let angleOffset = 0;  // Offset para controlar la rotación de los pétalos
+    let leafOffset = 0;  // Offset para animar el movimiento de las hojas
+
+    // Crear estrellas con propiedades de posición y brillo
+    const stars = [];
+    const numberOfStars = 50;  // Número de estrellas
+
+    for (let i = 0; i < numberOfStars; i++) {
+        stars.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            radius: Math.random() * 1.5 + 0.5,
+            alpha: Math.random(),
+            alphaChange: Math.random() * 0.02 + 0.01
+        });
+    }
+
+    // Dibujar el fondo con gradiente y estrellas que brillan y se apagan
+    function drawBackground() {
+        const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        gradient.addColorStop(0, '#001f4d');
+        gradient.addColorStop(1, '#00bfff');
+
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        stars.forEach(star => {
+            ctx.beginPath();
+            ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255, 255, 255, ${star.alpha})`;
+            ctx.fill();
+
+            star.alpha += star.alphaChange;
+            if (star.alpha <= 0 || star.alpha >= 1) {
+                star.alphaChange = -star.alphaChange;
+            }
+        });
+    }
+
+    // Generar los puntos del centro de la flor una sola vez
+    const centerPoints = [];
+
+    function generateCenterPoints() {
+        for (let i = 0; i < 200; i++) {
+            let angle = Math.random() * Math.PI * 2;
+            let radius = Math.random() * 70;
+            let x = Math.cos(angle) * radius;
+            let y = Math.sin(angle) * radius;
+            centerPoints.push({ x, y });
+        }
+    }
+
+    // Dibujar el centro de la flor
+    function drawCenter(x, y) {
+        ctx.save();
+        ctx.translate(x, y);
+
+        ctx.beginPath();
+        ctx.arc(0, 0, 80, 0, Math.PI * 2);
+        ctx.fillStyle = '#8B4513';
+        ctx.fill();
+
+        centerPoints.forEach(point => {
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, 3, 0, Math.PI * 2);
+            ctx.fillStyle = '#333';
+            ctx.fill();
+        });
+
+        ctx.restore();
+    }
+
+    // Dibujar un pétalo
+    function drawPetal(x, y, angle, petalColors) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+
+        const gradient = ctx.createRadialGradient(0, -100, 20, 0, -100, 120);
+        gradient.addColorStop(0, petalColors[0]);
+        gradient.addColorStop(1, petalColors[1]);
+
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.quadraticCurveTo(60, -150, 0, -180);
+        ctx.quadraticCurveTo(-60, -150, 0, 0);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+        ctx.shadowBlur = 15;
+        ctx.shadowOffsetX = 5;
+        ctx.shadowOffsetY = 5;
+        ctx.fill();
+        ctx.restore();
+    }
+
+    // Dibujar el tallo
+    function drawStem(x, y) {
+        ctx.save();
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+        ctx.shadowBlur = 15;
+        ctx.shadowOffsetX = 5;
+        ctx.shadowOffsetY = 5;
+
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x, y + 300);
+        ctx.lineWidth = 20;
+        ctx.strokeStyle = 'green';
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    // Función para dibujar las hojas estáticas
+    function drawLeaf(x, y, rotation, flowerX, flowerY) {
+        ctx.save();
+        ctx.translate(flowerX, flowerY);
+        ctx.rotate(rotation);
+        ctx.translate(x, y);
+
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+        ctx.shadowBlur = 10;
+        ctx.shadowOffsetX = 4;
+        ctx.shadowOffsetY = 4;
+
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.quadraticCurveTo(60, 60, 120, 0);
+        ctx.quadraticCurveTo(60, -60, 0, 0);
+        ctx.fillStyle = 'green';
+        ctx.fill();
+
+        ctx.strokeStyle = '#006400';
+        ctx.lineWidth = 2;
+
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(60, 0);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(30, 0);
+        ctx.lineTo(45, 15);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(30, 0);
+        ctx.lineTo(45, -15);
+        ctx.stroke();
+
+        ctx.restore();
+    }
+
+    // Dibujar una flor completa
+    function drawFlower(flower) {
+        const numberOfPetals = 20;
+
+        ctx.save();
+        ctx.translate(flower.x, flower.y);
+        ctx.rotate(angleOffset);
+
+        for (let i = 0; i < numberOfPetals; i++) {
+            let angle = (i * (Math.PI * 2)) / numberOfPetals;
+            drawPetal(0, 0, angle, flower.petalColors);
+        }
+
+        ctx.restore();
+        drawCenter(flower.x, flower.y);
+        drawStem(flower.x, flower.y + 80);
+        drawLeaf(-30, -250, 3.3, flower.x, flower.y + 80);  // Hoja izquierda
+        drawLeaf(55, 155, 0.3, flower.x, flower.y + 80);    // Hoja derecha
+    }
+
+    // Lista de flores con colores independientes
+    const flowers = Array.from({ length: 10 }, (_, i) => ({
+        x: 150 + i * 150,
+        y: canvas.height / 2 + (i % 2 === 0 ? 100 : -100),
+        petalColors: ["#FFF59D", "#FFB300"]
+    }));
+
+    // Función para dibujar todas las flores
+    function drawMultipleFlowers() {
+        flowers.forEach(flower => drawFlower(flower));
+    }
+
+    // Función principal de animación
+    function animate() {
+        drawBackground();
+        drawMultipleFlowers();
+
+        angleOffset += 0.01;  // Incrementar el ángulo de rotación de los pétalos
+
+        requestAnimationFrame(animate);
+    }
+
+    // Cambiar colores de las flores individualmente al hacer clic
+    canvas.addEventListener('click', (e) => {
+        const clickX = e.clientX;
+        const clickY = e.clientY;
+
+        flowers.forEach(flower => {
+            const distance = Math.hypot(clickX - flower.x, clickY - flower.y);
+            if (distance < 100) {
+                flower.petalColors = [
+                    `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+                    `#${Math.floor(Math.random() * 16777215).toString(16)}`
+                ];
+            }
+        });
+    });
+
+    // Generar los puntos del centro solo una vez
+    generateCenterPoints();
+
+    // Iniciar la animación
+    animate();
+</script>
+
+</body>
+</html>
