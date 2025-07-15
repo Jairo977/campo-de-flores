@@ -263,6 +263,11 @@
         requestAnimationFrame(animate);
     }
 
+    // Función para generar un color hexadecimal aleatorio de 6 dígitos
+    function getRandomHexColor() {
+        return '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+    }
+
     // Cambiar colores de las flores individualmente al hacer clic
     canvas.addEventListener('click', (e) => {
         const clickX = e.clientX;
@@ -272,8 +277,8 @@
             const distance = Math.hypot(clickX - flower.x, clickY - flower.y);
             if (distance < 100) {
                 flower.petalColors = [
-                    `#${Math.floor(Math.random() * 16777215).toString(16)}`,
-                    `#${Math.floor(Math.random() * 16777215).toString(16)}`
+                    getRandomHexColor(),
+                    getRandomHexColor()
                 ];
             }
         });
